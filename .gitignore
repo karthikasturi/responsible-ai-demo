@@ -1,0 +1,140 @@
+# Environment Variables (SENSITIVE)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Runtime Data
+data/
+*.db
+*.sqlite
+*.sqlite3
+trulens.db
+
+# Logs
+*.log
+logs/
+data/alerts.log
+data/feedback.jsonl
+
+# Docker volumes
+docker-data/
+postgres-data/
+prometheus-data/
+grafana-data/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Baseline and threshold files (optional - uncomment if you want to track them)
+# config/baseline_embeddings.json
+# config/thresholds.json
+
+# API Keys and Secrets (SENSITIVE)
+secrets.json
+credentials.json
+*.pem
+*.key
+*.crt
+
+# TruLens
+.trulens/
+tru_*
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Model files (can be large)
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pb
+
+# Grafana
+grafana.db
+
+# Prometheus
+prometheus-data/
+
+# Test outputs
+test-output/
+test-results/
+
+# Coverage reports
+.coverage
+coverage.xml
+*.cover
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/

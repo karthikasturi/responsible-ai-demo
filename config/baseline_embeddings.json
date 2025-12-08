@@ -1,0 +1,7 @@
+{
+  "baseline_embedding": null,
+  "baseline_timestamp": null,
+  "baseline_version": "1.0",
+  "baseline_samples": [],
+  "description": "Baseline embeddings will be generated after first successful chat interactions. This serves as the reference point for drift detection."
+}

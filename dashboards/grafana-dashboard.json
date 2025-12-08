@@ -1,0 +1,132 @@
+{
+  "dashboard": {
+    "title": "LLM Responsible AI Monitoring",
+    "uid": "llm-responsible-ai",
+    "version": 1,
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(llm_request_count[5m])",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Average Quality Score",
+        "type": "gauge",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "llm_quality_score{metric_type=\"overall_quality\"}",
+            "legendFormat": "Quality"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.6, "color": "yellow"},
+                {"value": 0.75, "color": "green"}
+              ]
+            },
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Drift Detection",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "llm_drift_detected",
+            "legendFormat": "{{drift_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Response Time Distribution",
+        "type": "heatmap",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "llm_request_duration_seconds",
+            "format": "heatmap"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Quality Metrics Over Time",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "llm_quality_score{metric_type=\"relevance\"}",
+            "legendFormat": "Relevance"
+          },
+          {
+            "expr": "llm_quality_score{metric_type=\"coherence\"}",
+            "legendFormat": "Coherence"
+          },
+          {
+            "expr": "llm_quality_score{metric_type=\"groundedness\"}",
+            "legendFormat": "Groundedness"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Drift Distance",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "llm_drift_distance",
+            "legendFormat": "{{drift_type}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(llm_error_count[5m])",
+            "legendFormat": "{{error_type}}"
+          }
+        ]
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}
