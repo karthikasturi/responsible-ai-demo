@@ -176,7 +176,7 @@ class DriftDetector:
             drift_detected = distance > threshold
             
             result = {
-                "drift_detected": drift_detected,
+                "drift_detected": bool(drift_detected),
                 "distance": float(distance),
                 "threshold": threshold,
                 "timestamp": datetime.utcnow().isoformat(),
@@ -229,7 +229,7 @@ class DriftDetector:
             drift_detected = distance > threshold
             
             result = {
-                "drift_detected": drift_detected,
+                "drift_detected": bool(drift_detected),
                 "distance": float(distance),
                 "threshold": threshold,
                 "timestamp": datetime.utcnow().isoformat(),
@@ -285,7 +285,7 @@ class DriftDetector:
             drift_detected = recent_avg < threshold or recent_avg < (overall_avg * 0.8)
             
             result = {
-                "drift_detected": drift_detected,
+                "drift_detected": bool(drift_detected),
                 "recent_average": float(recent_avg),
                 "overall_average": float(overall_avg),
                 "threshold": threshold,

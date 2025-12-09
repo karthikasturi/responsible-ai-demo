@@ -19,7 +19,11 @@ nano .env
 ### 2. Launch Everything
 
 ```bash
-docker-compose up -d
+# Enable BuildKit for faster builds (optional but recommended)
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+docker-compose up -d --build
 ```
 
 Wait ~30 seconds for services to start.
@@ -118,6 +122,7 @@ curl http://localhost:8000/metrics | grep llm_
 ### Containers won't start
 ```bash
 docker-compose down -v
+export DOCKER_BUILDKIT=1
 docker-compose up -d --build
 ```
 
@@ -131,6 +136,18 @@ docker-compose logs -f app
 docker-compose down -v
 rm -rf data/* config/baseline_embeddings.json
 docker-compose up -d
+```
+
+### Clean up Docker to free disk space
+```bash
+# Remove unused images
+docker image prune -a -f
+
+# Remove build cache
+docker builder prune -a -f
+
+# Remove everything unused (careful!)
+docker system prune -a --volumes -f
 ```
 
 ## 📖 Full Documentation

@@ -4,7 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: responsible-ai-app
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: responsible-ai-demo-app:latest
+    container_name: responsible-ai-demo-app
     ports:
       - "8000:8000"
     environment:

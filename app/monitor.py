@@ -7,26 +7,47 @@ import logging
 from typing import Dict, List, Optional
 from datetime import datetime
 
-# TruLens imports
-from trulens_eval import Tru, Feedback, TruChain
-from trulens_eval.app import App
-from trulens_eval.feedback import Groundedness
-from trulens_eval.feedback.provider.openai import OpenAI as OpenAIProvider
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
-# Initialize TruLens
-tru = Tru(database_url=os.getenv("TRULENS_DATABASE_URL", "sqlite:///./trulens.db"))
+# TruLens imports - Using deprecated but working trulens_eval for 2.5.1
+TRULENS_AVAILABLE = False
+Tru = None
+Feedback = None
+OpenAIProvider = None
+Groundedness = None
 
-# Initialize feedback provider
+try:
+    from trulens_eval import Tru, Feedback
+    from trulens_eval.feedback import Groundedness
+    from trulens_eval.feedback.provider.openai import OpenAI as OpenAIProvider
+    TRULENS_AVAILABLE = True
+    logger.info("TruLens (trulens_eval) loaded successfully")
+except ImportError as e:
+    logger.warning(f"TruLens not available. Evaluations will be disabled. Error: {e}")
+
+import numpy as np
+
+# Initialize TruLens
+tru = None
 openai_provider = None
-if os.getenv("OPENAI_API_KEY"):
+
+if TRULENS_AVAILABLE and Tru is not None:
     try:
-        openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
-        logger.info("TruLens OpenAI provider initialized")
+        tru = Tru(database_url=os.getenv("TRULENS_DATABASE_URL", "sqlite:///./trulens.db"))
+        logger.info("TruLens initialized")
+        
+        # Initialize feedback provider
+        if os.getenv("OPENAI_API_KEY") and OpenAIProvider is not None:
+            try:
+                openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
+                logger.info("TruLens OpenAI provider initialized")
+            except Exception as e:
+                logger.warning(f"Could not initialize OpenAI provider for TruLens: {e}")
     except Exception as e:
-        logger.warning(f"Could not initialize OpenAI provider for TruLens: {e}")
+        logger.warning(f"Could not initialize TruLens: {e}")
+        TRULENS_AVAILABLE = False
+else:
+    logger.warning("TruLens module not available. Evaluations disabled.")
 
 
 class TruLensMonitor:
@@ -46,6 +67,10 @@ class TruLensMonitor:
     
     def _setup_feedback_functions(self):
         """Set up TruLens feedback functions for evaluation."""
+        if not TRULENS_AVAILABLE:
+            logger.warning("TruLens not available. Evaluations disabled.")
+            return
+        
         if not self.provider:
             logger.warning("OpenAI provider not available. TruLens evaluations disabled.")
             return

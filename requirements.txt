@@ -38,6 +38,7 @@ sqlalchemy==2.0.44
 # Utilities
 python-json-logger==4.0.0
 pytz==2025.2
+setuptools>=65.5.1
 
 # Optional: Email alerts
 secure-smtplib==0.1.1
