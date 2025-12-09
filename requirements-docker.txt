@@ -1,5 +1,5 @@
 # Core LLM and LangChain
-openai==2.9.0
+openai==1.109.1
 langchain==1.1.2
 langchain-core==1.1.1
 langchain-openai==1.1.0
@@ -7,6 +7,7 @@ langchain-community==0.4.1
 
 # TruLens for evaluation and monitoring
 trulens-eval==2.5.1
+trulens-providers-openai==2.5.1
 
 # FastAPI and server
 fastapi==0.124.0

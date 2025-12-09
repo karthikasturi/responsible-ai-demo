@@ -14,12 +14,10 @@ TRULENS_AVAILABLE = False
 Tru = None
 Feedback = None
 OpenAIProvider = None
-Groundedness = None
 
 try:
     from trulens_eval import Tru, Feedback
-    from trulens_eval.feedback import Groundedness
-    from trulens_eval.feedback.provider.openai import OpenAI as OpenAIProvider
+    from trulens.providers.openai import OpenAI as OpenAIProvider
     TRULENS_AVAILABLE = True
     logger.info("TruLens (trulens_eval) loaded successfully")
 except ImportError as e:
@@ -31,23 +29,29 @@ import numpy as np
 tru = None
 openai_provider = None
 
+logger.info(f"TRULENS_AVAILABLE={TRULENS_AVAILABLE}, Tru={Tru}, OpenAIProvider={OpenAIProvider}")
+logger.info(f"OPENAI_API_KEY set: {bool(os.getenv('OPENAI_API_KEY'))}")
+
 if TRULENS_AVAILABLE and Tru is not None:
     try:
         tru = Tru(database_url=os.getenv("TRULENS_DATABASE_URL", "sqlite:///./trulens.db"))
-        logger.info("TruLens initialized")
+        logger.info("TruLens initialized successfully")
         
         # Initialize feedback provider
         if os.getenv("OPENAI_API_KEY") and OpenAIProvider is not None:
             try:
+                logger.info("Attempting to initialize OpenAI provider...")
                 openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
-                logger.info("TruLens OpenAI provider initialized")
+                logger.info(f"TruLens OpenAI provider initialized: {type(openai_provider)}")
             except Exception as e:
-                logger.warning(f"Could not initialize OpenAI provider for TruLens: {e}")
+                logger.error(f"Could not initialize OpenAI provider for TruLens: {e}", exc_info=True)
+        else:
+            logger.warning(f"Cannot initialize OpenAI provider: API_KEY={bool(os.getenv('OPENAI_API_KEY'))}, Provider={OpenAIProvider}")
     except Exception as e:
-        logger.warning(f"Could not initialize TruLens: {e}")
+        logger.error(f"Could not initialize TruLens: {e}", exc_info=True)
         TRULENS_AVAILABLE = False
 else:
-    logger.warning("TruLens module not available. Evaluations disabled.")
+    logger.warning(f"TruLens module not available. TRULENS_AVAILABLE={TRULENS_AVAILABLE}, Tru={Tru}")
 
 
 class TruLensMonitor:
@@ -76,43 +80,13 @@ class TruLensMonitor:
             return
         
         try:
-            # 1. Relevance: Does the response address the question?
-            f_relevance = Feedback(
-                self.provider.relevance,
-                name="Relevance"
-            ).on_input_output()
-            
-            # 2. Coherence: Is the response logically consistent?
-            f_coherence = Feedback(
-                self.provider.coherence,
-                name="Coherence"
-            ).on_output()
-            
-            # 3. Groundedness: Is the response grounded in provided context?
-            grounded = Groundedness(groundedness_provider=self.provider)
-            f_groundedness = Feedback(
-                grounded.groundedness_measure,
-                name="Groundedness"
-            ).on_output()
-            
-            # 4. Sentiment: Analyze response sentiment
-            f_sentiment = Feedback(
-                self.provider.sentiment,
-                name="Sentiment"
-            ).on_output()
-            
-            # 5. Conciseness: Check if response is appropriately concise
-            f_conciseness = Feedback(
-                self.provider.conciseness,
-                name="Conciseness"
-            ).on_output()
-            
+            # Store feedback function references with their names
+            # For trulens-eval 2.5.1, we'll call these directly during evaluation
             self.feedback_functions = [
-                f_relevance,
-                f_coherence,
-                f_groundedness,
-                f_sentiment,
-                f_conciseness
+                ("relevance", "Relevance"),
+                ("coherence", "Coherence"),
+                ("sentiment", "Sentiment"),
+                ("conciseness", "Conciseness")
             ]
             
             logger.info(f"Initialized {len(self.feedback_functions)} feedback functions")
@@ -160,34 +134,32 @@ class TruLensMonitor:
             }
             
             # Run each feedback function
-            for feedback in self.feedback_functions:
+            for method_name, display_name in self.feedback_functions:
                 try:
-                    # Evaluate based on feedback type
-                    if feedback.name == "Relevance":
-                        score = self.provider.relevance(input_text, output_text)
-                    elif feedback.name == "Coherence":
-                        score = self.provider.coherence(output_text)
-                    elif feedback.name == "Groundedness":
-                        score = self.provider.groundedness_measure_with_cot_reasons(output_text)
-                        if isinstance(score, tuple):
-                            score = score[0]  # Extract score from tuple
-                    elif feedback.name == "Sentiment":
-                        score = self.provider.sentiment(output_text)
-                    elif feedback.name == "Conciseness":
-                        score = self.provider.conciseness(output_text)
+                    # Get the method from the provider
+                    method = getattr(self.provider, method_name, None)
+                    if method is None:
+                        logger.warning(f"Method {method_name} not found on provider")
+                        results["scores"][display_name.lower()] = None
+                        continue
+                    
+                    # Call the method with appropriate arguments
+                    if method_name == "relevance":
+                        score = method(input_text, output_text)
                     else:
-                        score = None
+                        # coherence, sentiment, conciseness take only output
+                        score = method(output_text)
                     
                     # Store score (normalize to 0-1 range if needed)
                     if score is not None:
                         if isinstance(score, (int, float)):
-                            results["scores"][feedback.name.lower()] = float(score)
+                            results["scores"][display_name.lower()] = float(score)
                         else:
-                            results["scores"][feedback.name.lower()] = float(score)
+                            results["scores"][display_name.lower()] = float(score)
                     
                 except Exception as e:
-                    logger.error(f"Error evaluating {feedback.name}: {e}")
-                    results["scores"][feedback.name.lower()] = None
+                    logger.error(f"Error evaluating {display_name}: {e}")
+                    results["scores"][display_name.lower()] = None
             
             # Calculate overall quality score (average of available scores)
             valid_scores = [s for s in results["scores"].values() if s is not None]
